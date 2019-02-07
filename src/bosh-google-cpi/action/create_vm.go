@@ -189,6 +189,8 @@ func (cv createVMBase) Run(agentID string, stemcellCID StemcellCID, cloudProps V
 		return "", nil, bosherr.WrapErrorf(err, "Parsing BackendService %#v", cloudProps.BackendService)
 	}
 
+	ephemeral := cloudProps.EphemeralDiskType
+
 	// Parse VM properties
 	vmProps := &instance.Properties{
 		Zone:              zone,
@@ -207,10 +209,11 @@ func (cv createVMBase) Run(agentID string, stemcellCID StemcellCID, cloudProps V
 		Tags:              cloudProps.Tags,
 		Labels:            cloudProps.Labels,
 		Accelerators:      acceleratorTypeLinks,
+		EphemeralDiskType: ephemeral,
 	}
 
 	// Create VM
-	vm, err := cv.vmService.Create(vmProps, vmNetworks, cv.registryOptions.EndpointWithCredentials())
+	vm, err, _ := cv.vmService.Create(vmProps, vmNetworks, cv.registryOptions.EndpointWithCredentials())
 	if err != nil {
 		if _, ok := err.(api.CloudError); ok {
 			return "", nil, err
@@ -228,10 +231,18 @@ func (cv createVMBase) Run(agentID string, stemcellCID StemcellCID, cloudProps V
 	// Create VM settings
 	agentNetworks := networks.AsRegistryNetworks()
 	agentSettings := registry.NewAgentSettings(agentID, vm, agentNetworks, registry.EnvSettings(env), cv.agentOptions)
+
+	if ephemeral == "local-ssd" {
+		agentSettings.Disks.Ephemeral = "/dev/nvme0n1"
+		//err := cv.vmService.SetMetadata(vm, instance.Metadata{"startup-script": "#! /bin/bash\n\n# Installs apache and a custom homepage\napt-get update\napt-get install -y apache2\ncat <<EOF > /var/www/html/index.html\n<html><body><h1>Hello World</h1>\n<p>This page was created from a simple start up script!</p>\n</body></html>"})
+		//if err != nil {
+		//	return "", err
+		//}
+	}
+
 	if err = cv.registryClient.Update(vm, agentSettings); err != nil {
 		return "", nil, bosherr.WrapErrorf(err, "Creating VM")
 	}
-
 	return VMCID(vm), networks, nil
 }
 
