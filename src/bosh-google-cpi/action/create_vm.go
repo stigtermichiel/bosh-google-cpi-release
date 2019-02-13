@@ -234,10 +234,6 @@ func (cv createVMBase) Run(agentID string, stemcellCID StemcellCID, cloudProps V
 
 	if ephemeral == "local-ssd" {
 		agentSettings.Disks.Ephemeral = "/dev/nvme0n1"
-		//err := cv.vmService.SetMetadata(vm, instance.Metadata{"startup-script": "#! /bin/bash\n\n# Installs apache and a custom homepage\napt-get update\napt-get install -y apache2\ncat <<EOF > /var/www/html/index.html\n<html><body><h1>Hello World</h1>\n<p>This page was created from a simple start up script!</p>\n</body></html>"})
-		//if err != nil {
-		//	return "", err
-		//}
 	}
 
 	if err = cv.registryClient.Update(vm, agentSettings); err != nil {
