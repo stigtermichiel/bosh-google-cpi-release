@@ -2,8 +2,8 @@ package instance
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
-	"github.com/pkg/errors"
 	"strings"
 
 	bosherr "github.com/cloudfoundry/bosh-utils/errors"
