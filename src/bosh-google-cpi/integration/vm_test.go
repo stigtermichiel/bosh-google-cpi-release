@@ -844,6 +844,8 @@ var _ = Describe("VM", func() {
 			// Labels should be an exact match
 			Expect(instance.ServiceAccounts[0].Scopes).To(Not(BeEmpty()))
 			Expect(instance.ServiceAccounts[0].Email).To(Equal(serviceAccount))
+			Expect(instance.Disks[1].DeviceName).To(Equal("local-ssd-0"))
+			Expect(instance.Disks[1].Interface).To(Equal("NVME"))
 		})
 
 		By("deleting the VM")
